@@ -13,6 +13,7 @@ from django.contrib.auth.hashers import check_password
 import jwt
 from django.conf import settings
 
+
 def get_tokens_for_user(user):
     refresh = RefreshToken.for_user(user)
 
