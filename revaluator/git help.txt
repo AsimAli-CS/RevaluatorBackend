@@ -1,0 +1,20 @@
+
+
+git fetch origin // sari remote repo meri local ma aa jaien git - only time
+
+
+create pull request:
+git branch // branches kon si haien tou humien dev branch ma hona chahiye
+git checkout dev // dev branch ma aa jao gy
+git pull origin dev //dev branch ma jitni changing houn gi woh sari aa jaien
+
+--
+
+git checkout -b REV-16-VERIFY-OTP
+git status // sari files show kr dey ga 
+git add .
+git commit -m "REV 16 Created Verify OTP"
+git push origin REV-16-VERIFY-OTP
+
+-- kaam ho gya
+
