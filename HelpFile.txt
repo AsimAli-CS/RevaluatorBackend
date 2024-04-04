@@ -19,7 +19,7 @@ DATABASES = {
 }
 
 ## Model creation steps
-python manage.py makemigrations <API APP name>
+python manage.py makemigrations authAPI
 python manage.py migrate
 
 
