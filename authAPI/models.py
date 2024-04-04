@@ -37,6 +37,8 @@ class User(models.Model):
     company = models.CharField(max_length=100, null=True, blank=True)
     country = models.CharField(max_length=100, null=True, blank=True)
     bio = models.TextField(null=True, blank=True)
+    otp = models.CharField(max_length=6, null=True, blank=True)
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
