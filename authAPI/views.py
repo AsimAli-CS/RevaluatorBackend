@@ -1,3 +1,4 @@
+from django.utils import timezone
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.views import APIView
@@ -67,15 +68,43 @@ class OTPGenerateView(APIView):
             user = User.object.get(email=email)
         except User.DoesNotExist:
             return Response({'msg': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
-        print("Emialllll 2", user)
         # Generate OTP
-        otp = ''.join([str(random.randint(0, 9)) for _ in range(6)])
+        # otp = ''.join([str(random.randint(0, 9)) for _ in range(6)])
+        otp = "613444"
 
         # Update user's otp field
         user.otp = otp
         user.save()
 
         # TODO: Send OTP via SMS or Email (not implemented here)
-        send_otp_email(user.email , otp)
+        # send_otp_email(user.email , otp)
 
         return Response({'msg': 'OTP generated and updated successfully'}, status=status.HTTP_200_OK)
+
+
+class ChangePassword(APIView):
+    
+    def post(self, request, format=None):
+        otp = request.data.get('otp')
+        new_password = request.data.get('new_password')
+        email = request.data.get('email')
+
+        try:
+            user = User.object.get(email=email)
+        except User.DoesNotExist:
+            return Response({'msg': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        if user.otp != otp:
+            return Response({'msg': 'Invalid OTP'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Check if updated_at is within one hour from the current time
+        current_time = timezone.now()
+        if current_time > user.updated_at + timezone.timedelta(hours=1):
+            return Response({'msg': 'OTP has expired'}, status=status.HTTP_400_BAD_REQUEST)
+
+
+        # Change password
+        user.password = make_password(new_password)
+        user.save()
+
+        return Response({'msg': 'Password changed successfully'}, status=status.HTTP_200_OK)

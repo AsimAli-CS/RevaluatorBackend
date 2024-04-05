@@ -1,5 +1,5 @@
 from django.urls import path , include
-from authAPI.views import  UserRegistrationView,UserLoginView , OTPGenerateView
+from authAPI.views import  UserRegistrationView,UserLoginView , OTPGenerateView , ChangePassword
 
 urlpatterns = [
 
@@ -11,6 +11,6 @@ urlpatterns = [
 
     path('verify/otp/', UserLoginView.as_view(), name="login"),
     
-    path('change-password/', UserLoginView.as_view(), name="login"),
+    path('change-password/', ChangePassword.as_view(), name="change-password"),
 
 ]
