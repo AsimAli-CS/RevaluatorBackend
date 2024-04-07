@@ -1,5 +1,7 @@
 from django.db import models
 from enum import Enum
+from authAPI.models import User  
+
 import uuid
 
 
@@ -30,6 +32,8 @@ class Questions(models.Model):
     answer = models.CharField(
     max_length=1,
     choices=[(choice.value, choice.name) for choice in AnswerChoices])
+    testId = models.ForeignKey(Test, on_delete=models.CASCADE)
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -40,9 +44,14 @@ class Candidate(models.Model):
     email = models.EmailField(unique=True)
     phone_no = models.CharField(max_length=15)
     cvTitle = models.CharField(max_length=255, null=True, blank=True)
-    skills = models.JSONField()
     cvScore = models.DecimalField(max_digits=5, decimal_places=2, default=0)
-    testId = models.ForeignKey(Test, on_delete=models.CASCADE)
-    testScore = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+class TestCandidate(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    candidate = models.ForeignKey(Candidate, on_delete=models.CASCADE)
+    skills = models.JSONField()
+    testId = models.ForeignKey(Test, on_delete=models.CASCADE)
+    testScore = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
