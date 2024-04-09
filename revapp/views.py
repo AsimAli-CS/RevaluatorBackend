@@ -60,3 +60,12 @@ class AddQuestionView(APIView):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+class DeleteQuestionView(APIView):
+    def delete(self, request, question_id, format=None):
+        try:
+            question = Questions.objects.get(id=question_id)
+            question.delete()
+            return Response({'message': 'Question deleted successfully'}, status=status.HTTP_204_NO_CONTENT)
+        except Questions.DoesNotExist:
+            return Response({'error': 'Question not found'}, status=status.HTTP_404_NOT_FOUND)
