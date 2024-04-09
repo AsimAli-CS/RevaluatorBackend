@@ -109,3 +109,11 @@ class TestCandidateCreateView(APIView):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+
+class RecruiterCandidateResults(APIView):
+    def get(self, request, recruiter_id, format=None):
+        # Retrieve all candidates' results/data specific to the recruiter
+        candidates_results = TestCandidate.objects.filter(user__id=recruiter_id)
+        serializer = TestCandidateSerializer(candidates_results, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
