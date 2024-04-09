@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from .models import Candidate
-from .models import TestCandidate,Test
+from .models import TestCandidate,Test,Questions
 
 class CandidateSerializer(serializers.ModelSerializer):
     class Meta:
@@ -16,4 +16,10 @@ class TestCandidateSerializer(serializers.ModelSerializer):
 class CreateTestSerializer(serializers.ModelSerializer):
     class Meta:
         model = Test
+        fields = '__all__'
+
+
+class QuestionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Questions
         fields = '__all__'

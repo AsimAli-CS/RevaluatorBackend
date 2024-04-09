@@ -1,8 +1,8 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from .models import Candidate,TestCandidate
-from .serializers import CandidateSerializer,TestCandidateSerializer,CreateTestSerializer
+from .models import Candidate,TestCandidate,Questions
+from .serializers import CandidateSerializer,TestCandidateSerializer,CreateTestSerializer,QuestionSerializer
 from authAPI.models import User
 
 class CandidateView(APIView):
@@ -36,3 +36,9 @@ class CreateTestView(APIView):
             test = serializer.save()
             return Response({'id': str(test.id)}, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class AllQuestionsView(APIView):
+    def get(self, request, format=None):
+        questions = Questions.objects.all()
+        serialized_questions = QuestionSerializer(questions, many=True)
+        return Response(serialized_questions.data, status=status.HTTP_200_OK)
