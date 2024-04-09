@@ -42,3 +42,13 @@ class AllQuestionsView(APIView):
         questions = Questions.objects.all()
         serialized_questions = QuestionSerializer(questions, many=True)
         return Response(serialized_questions.data, status=status.HTTP_200_OK)
+    
+
+class QuestionsByTestIdView(APIView):
+    def get(self, request, test_id, format=None):
+        try:
+            questions = Questions.objects.filter(testId=test_id)
+            serialized_questions = QuestionSerializer(questions, many=True)
+            return Response(serialized_questions.data, status=status.HTTP_200_OK)
+        except Questions.DoesNotExist:
+            return Response({'error': 'Questions not found'}, status=status.HTTP_404_NOT_FOUND)
