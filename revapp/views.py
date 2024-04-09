@@ -55,11 +55,25 @@ class QuestionsByTestIdView(APIView):
         
 class AddQuestionView(APIView):
     def post(self, request, format=None):
-        serializer = QuestionSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        data = request.data
+        if isinstance(data, list):
+            # If request data is a list of questions
+            serializer_list = []
+            for item in data:
+                serializer = QuestionSerializer(data=item)
+                if serializer.is_valid():
+                    serializer.save()
+                    serializer_list.append(serializer.data)
+                else:
+                    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            return Response(serializer_list, status=status.HTTP_201_CREATED)
+        else:
+            # If request data is a single question
+            serializer = QuestionSerializer(data=data)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
 class DeleteQuestionView(APIView):
     def delete(self, request, question_id, format=None):
