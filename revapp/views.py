@@ -52,3 +52,11 @@ class QuestionsByTestIdView(APIView):
             return Response(serialized_questions.data, status=status.HTTP_200_OK)
         except Questions.DoesNotExist:
             return Response({'error': 'Questions not found'}, status=status.HTTP_404_NOT_FOUND)
+        
+class AddQuestionView(APIView):
+    def post(self, request, format=None):
+        serializer = QuestionSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
