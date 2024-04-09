@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import CandidateView,TestDetailsView,CreateTestView,AllQuestionsView,QuestionsByTestIdView,AddQuestionView,DeleteQuestionView,UpdateQuestionView
+from .views import CandidateView,TestDetailsView,CreateTestView,AllQuestionsView,QuestionsByTestIdView,AddQuestionView,DeleteQuestionView,UpdateQuestionView,TestCandidateCreateView
 
 urlpatterns = [
     path('candidates/', CandidateView.as_view(), name='candidates'),
@@ -9,5 +9,6 @@ urlpatterns = [
     path('questions/<uuid:test_id>/', QuestionsByTestIdView.as_view(), name='questions_by_test_id'),
     path('add-question/', AddQuestionView.as_view(), name='add_question'),
     path('questions/delete/<uuid:question_id>/', DeleteQuestionView.as_view(), name='delete_question'),
-    path('questions/update/<uuid:question_id>/', UpdateQuestionView.as_view(), name='update_question')
+    path('questions/update/<uuid:question_id>/', UpdateQuestionView.as_view(), name='update_question'),
+     path('test-candidates/', TestCandidateCreateView.as_view(), name='create_test_candidate')
 ]
