@@ -3,5 +3,5 @@ from .views import CandidateView,TestDetailsView
 
 urlpatterns = [
     path('candidates/', CandidateView.as_view(), name='candidates'),
-    # path('test-details/<str:email>/', TestDetailsView.as_view(), name='test_details')
+    path('test-details/<str:email>/', TestDetailsView.as_view(), name='test_details')
 ]
