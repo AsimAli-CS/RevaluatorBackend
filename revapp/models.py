@@ -48,10 +48,10 @@ class Candidate(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-# class TestCandidate(models.Model):
-#     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-#     user = models.ForeignKey(User, on_delete=models.CASCADE)
-#     candidate = models.ForeignKey(Candidate, on_delete=models.CASCADE)
-#     skills = models.JSONField()
-#     testId = models.ForeignKey(Test, on_delete=models.CASCADE)
-#     testScore = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+class TestCandidate(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    candidate = models.ForeignKey(Candidate, on_delete=models.CASCADE)
+    skills = models.JSONField()
+    testId = models.ForeignKey(Test, on_delete=models.CASCADE)
+    testScore = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)

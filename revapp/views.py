@@ -2,7 +2,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from .models import Candidate,TestCandidate
-from .serializers import CandidateSerializer,TestCandidateSerializer
+from .serializers import CandidateSerializer,TestCandidateSerializer,CreateTestSerializer
 from authAPI.models import User
 
 class CandidateView(APIView):
@@ -28,3 +28,11 @@ class TestDetailsView(APIView):
             return Response(serialized_data.data, status=status.HTTP_200_OK)
         except User.DoesNotExist:
             return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+
+class CreateTestView(APIView):
+    def post(self, request, format=None):
+        serializer = CreateTestSerializer(data=request.data)
+        if serializer.is_valid():
+            test = serializer.save()
+            return Response({'id': str(test.id)}, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
