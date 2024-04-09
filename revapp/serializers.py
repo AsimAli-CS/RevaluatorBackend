@@ -7,8 +7,9 @@ class CandidateSerializer(serializers.ModelSerializer):
         model = Candidate
         fields = '__all__'
 
-# class TestCandidateSerializer(serializers.ModelSerializer):
-#     class Meta:
-#         model = TestCandidate
-#         fields = '__all__'
+class TestCandidateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TestCandidate
+        fields = '__all__'
+
 
