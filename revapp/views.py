@@ -17,7 +17,11 @@ class CandidateView(APIView):
             return Response({'msg': 'Candidate data stored successfully'}, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-
+class CandidateView(APIView):
+    def get(self, request, format=None):
+        candidates = Candidate.objects.all()
+        serializer = CandidateSerializer(candidates, many=True)
+        return Response(serializer.data)
 
 class TestDetailsView(APIView):
     def get(self, request, email, format=None):
