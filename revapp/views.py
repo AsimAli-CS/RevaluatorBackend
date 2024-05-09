@@ -17,11 +17,11 @@ class CandidateView(APIView):
             return Response({'msg': 'Candidate data stored successfully'}, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-class CandidateView(APIView):
     def get(self, request, format=None):
         candidates = Candidate.objects.all()
         serializer = CandidateSerializer(candidates, many=True)
         return Response(serializer.data)
+
 
 class TestDetailsView(APIView):
     def get(self, request, email, format=None):
@@ -135,3 +135,57 @@ class RecruiterCandidateResults(APIView):
         candidates_results = TestCandidate.objects.filter(user__id=recruiter_id)
         serializer = TestCandidateSerializer(candidates_results, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
+    
+
+class TestSubmissionView(APIView):
+    def post(self, request, test_id="6a4c817e-c1c0-4bee-9160-448be2e99cc7", candidate_id="028da5b2-8cee-4ec4-be39-d7a6b4fc8755" ,format=None):
+        try:
+            test = Test.objects.get(id=test_id)
+        except Test.DoesNotExist:
+            return Response({"detail": "Test not found"}, status=status.HTTP_404_NOT_FOUND)
+        
+        try:
+            candidate = Candidate.objects.get(id=candidate_id)
+        except Test.DoesNotExist:
+            return Response({"detail": "Candidate not found"}, status=status.HTTP_404_NOT_FOUND)
+        
+        # Assuming request.data contains the dictionary of question IDs and user answers
+        candidate_answers_dict = {
+            "011b9dde-5911-4c18-ba1b-f72a9c76afd1": "B",
+            "076473f1-c9b4-4f47-a819-0a57a5de3ea6": "B",
+            "2b8d3a30-9736-47d4-aff5-ef317bd0de3b": "B",
+            "328348b2-7518-4dce-9f6b-1b78b064e394": "D",
+            "516156c7-86d4-4392-8f70-2eb9398f267e": "B",
+            "71e85260-9019-4782-857f-496e55b49e2b": "A"
+        }
+
+        correct_answers = 0
+        
+        for question_id, user_answer in candidate_answers_dict.items():
+            try:
+                question = Questions.objects.get(id=question_id, testId=test)
+            except Questions.DoesNotExist:
+                return Response({"detail": f"Question with ID {question_id} not found in the test"}, status=status.HTTP_404_NOT_FOUND)
+            
+            if user_answer == question.answer:
+                correct_answers += 1
+        
+        # Calculate the score based on the number of correct answers
+        total_questions = len(candidate_answers_dict)
+        if total_questions == 0:
+            return Response({"detail": "No questions found in the test"}, status=status.HTTP_404_NOT_FOUND)
+        
+        score = (correct_answers / total_questions) * 100
+        
+        try:
+            test_candidates = TestCandidate.objects.filter(candidate=candidate, testId=test)
+            if test_candidates.exists():
+                for test_candidate in test_candidates:
+                    test_candidate.testScore = score
+                    test_candidate.save()
+            else:
+                return Response({'msg': 'Test candidate not found'}, status=status.HTTP_404_NOT_FOUND)
+        except TestCandidate.MultipleObjectsReturned:
+            return Response({'msg': 'Multiple TestCandidate instances found for candidate and test'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+        return Response({'msg': 'Test submitted successfully', 'score': score}, status=status.HTTP_201_CREATED)
