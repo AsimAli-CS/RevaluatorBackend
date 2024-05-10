@@ -150,13 +150,15 @@ class TestSubmissionView(APIView):
             return Response({"detail": "Candidate not found"}, status=status.HTTP_404_NOT_FOUND)
         
         # Assuming request.data contains the dictionary of question IDs and user answers
+
+        #candidate_answers = request.data.get('answers', {})
         candidate_answers_dict = {
             "011b9dde-5911-4c18-ba1b-f72a9c76afd1": "B",
             "076473f1-c9b4-4f47-a819-0a57a5de3ea6": "B",
             "2b8d3a30-9736-47d4-aff5-ef317bd0de3b": "B",
             "328348b2-7518-4dce-9f6b-1b78b064e394": "D",
-            "516156c7-86d4-4392-8f70-2eb9398f267e": "B",
-            "71e85260-9019-4782-857f-496e55b49e2b": "A"
+            "516156c7-86d4-4392-8f70-2eb9398f267e": "C",
+            "71e85260-9019-4782-857f-496e55b49e2b": "C"
         }
 
         correct_answers = 0
