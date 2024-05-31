@@ -1,3 +1,4 @@
+from datetime import timedelta
 """
 Django settings for revaluator project.
 
@@ -11,6 +12,8 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 """
 
 from pathlib import Path
+
+from django.conf import settings
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -85,7 +88,7 @@ DATABASES = {
         "USER": "postgres",
         "PASSWORD": "root",
         "HOST": "localhost",
-        "PORT": "5432",
+        "PORT": "5433",
     }
 
 }
@@ -141,3 +144,25 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
 
+
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(days=36500),  # Example: 100 years
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=36500),  # Example: 100 years
+    'ROTATE_REFRESH_TOKENS': False,
+    'BLACKLIST_AFTER_ROTATION': True,
+    'UPDATE_LAST_LOGIN': False,
+    
+    'ALGORITHM': 'HS256',
+    'SIGNING_KEY': 'django-insecure-ie#ae)z(^i+(4lcna2uei9jxh^7b52@4737ho*o5wxf-xpzz+)',
+    'VERIFYING_KEY': None,
+    'AUTH_HEADER_TYPES': ('Bearer',),
+    'USER_ID_FIELD': 'id',
+    'USER_ID_CLAIM': 'user_id',
+    'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',),
+    'TOKEN_TYPE_CLAIM': 'token_type',
+
+    'JTI_CLAIM': 'jti',
+    'SLIDING_TOKEN_REFRESH_EXP_CLAIM': 'refresh_exp',
+    'SLIDING_TOKEN_LIFETIME': timedelta(days=36500),  # Example: 100 years
+    'SLIDING_TOKEN_REFRESH_LIFETIME': timedelta(days=36500),  # Example: 100 years
+}

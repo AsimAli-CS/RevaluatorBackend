@@ -1,12 +1,38 @@
+import jwt
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
+
+from revaluator import settings
 from .models import Candidate,TestCandidate,Questions,Test
 from .serializers import CandidateSerializer,TestCandidateSerializer,CreateTestSerializer,QuestionSerializer
 from authAPI.models import User
 
+def get_user_id_from_token(request):
+    auth_header = request.headers.get('token')
+    if auth_header:
+        try:
+            # token = auth_header.split(' ')[1]  # Assuming the header is 'Bearer <token>'
+            decoded_token = jwt.decode(auth_header, settings.SECRET_KEY, algorithms=['HS256'])
+            user_id = decoded_token.get('user_id')
+            return user_id
+        except (jwt.DecodeError) as e:
+            # Handle token errors
+            print(f"Token error: {e}")
+            return None
+    return None
+
+
 class CandidateView(APIView):
     def post(self, request, format=None):
+        recruiter_id = get_user_id_from_token(request)
+
+        if isinstance(request.data, list):
+            for candidate_data in request.data:
+                candidate_data['recruiterId'] = recruiter_id
+        else:
+            request.data['recruiterId'] = recruiter_id
+            
         if isinstance(request.data, list):
             serializer = CandidateSerializer(data=request.data, many=True)
         else:
@@ -18,7 +44,9 @@ class CandidateView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def get(self, request, format=None):
-        candidates = Candidate.objects.all()
+        recruiter_id = get_user_id_from_token(request)
+
+        candidates = Candidate.objects.filter(recruiterId=recruiter_id)
         serializer = CandidateSerializer(candidates, many=True)
         return Response(serializer.data)
 

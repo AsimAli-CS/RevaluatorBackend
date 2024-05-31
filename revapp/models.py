@@ -1,8 +1,12 @@
 from django.db import models
 from enum import Enum
+
+import jwt
 from authAPI.models import User  
 
 import uuid
+
+from revaluator import settings
 
 
 class AnswerChoices(Enum):
@@ -46,8 +50,11 @@ class Candidate(models.Model):
     cvTitle = models.CharField(max_length=255, null=True, blank=True)
     cvScore = models.DecimalField(max_digits=5, decimal_places=2, default=0)
     skills = models.CharField(max_length=255, null=True, blank=True) 
+    recruiterId = models.ForeignKey(User, on_delete=models.CASCADE , null=True)
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
 
 class TestCandidate(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
