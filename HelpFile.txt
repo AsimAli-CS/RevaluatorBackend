@@ -25,3 +25,6 @@ python manage.py migrate
 
 ## Run App API
 python manage.py runserver
+
+#Django CORS Headers
+pip install django-cors-headers
