@@ -91,7 +91,7 @@ DATABASES = {
         "USER": "postgres",
         "PASSWORD": "root",
         "HOST": "localhost",
-        "PORT": "5433",
+        "PORT": "5432",
     }
 
 }
@@ -164,6 +164,7 @@ CORS_ALLOW_HEADERS = [
     'accept',
     'origin',
     'x-requested-with',
+    'token',
 ]
 
 
