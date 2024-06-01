@@ -41,7 +41,6 @@ class UserRegistrationView(APIView):
     return Response({'token':token,'msg':'Registration Success'},status=status.HTTP_201_CREATED)
 
 class UserLoginView(APIView):
-
     def post(self, request):
         email = request.data.get('email')
         password = request.data.get('password')
@@ -49,11 +48,10 @@ class UserLoginView(APIView):
         try:
             user = User.object.get(email=email)
         except User.DoesNotExist:
-            return Response({'error': 'Invalid email or password'}, status=status.HTTP_401_UNAUTHORIZED)
+            return Response({'error': 'Email does not exist.'}, status=status.HTTP_404_NOT_FOUND)
 
         if not check_password(password, user.password):
-            return Response({'error': 'Invalid email or password'}, status=status.HTTP_401_UNAUTHORIZED)
-
+            return Response({'error': 'Incorrect password.'}, status=status.HTTP_401_UNAUTHORIZED)
 
         token = get_tokens_for_user(user)
         return Response({'token': token}, status=status.HTTP_200_OK)
