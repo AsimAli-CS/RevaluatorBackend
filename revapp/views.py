@@ -86,12 +86,13 @@ class QuestionsByTestIdView(APIView):
             return Response({'error': 'Questions not found'}, status=status.HTTP_404_NOT_FOUND)
         
 class AddQuestionView(APIView):
-    def post(self, request, format=None):
+    def post(self, request, test_id , format=None):
         data = request.data
         if isinstance(data, list):
             # If request data is a list of questions
             serializer_list = []
             for item in data:
+                item['testId'] = test_id
                 serializer = QuestionSerializer(data=item)
                 if serializer.is_valid():
                     serializer.save()
@@ -100,6 +101,7 @@ class AddQuestionView(APIView):
                     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
             return Response(serializer_list, status=status.HTTP_201_CREATED)
         else:
+            data['testId'] = test_id
             # If request data is a single question
             serializer = QuestionSerializer(data=data)
             if serializer.is_valid():
