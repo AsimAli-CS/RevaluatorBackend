@@ -1,4 +1,5 @@
 from django.utils import timezone
+import jwt
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.views import APIView
@@ -16,6 +17,21 @@ import random
 from datetime import datetime, timedelta
 from django.conf import settings
 from django.utils import timezone
+import logging
+
+def get_user_id_from_token(request):
+    auth_header = request.headers.get('token')
+    if auth_header:
+        try:
+            # token = auth_header.split(' ')[1]  # Assuming the header is 'Bearer <token>'
+            decoded_token = jwt.decode(auth_header, settings.SECRET_KEY, algorithms=['HS256'])
+            user_id = decoded_token.get('user_id')
+            return user_id
+        except (jwt.DecodeError) as e:
+            # Handle token errors
+            print(f"Token error: {e}")
+            return None
+    return None
 
 def get_tokens_for_user(user):
     refresh = RefreshToken.for_user(user)
@@ -137,3 +153,43 @@ class OTPVerifyView(APIView):
             return Response({'msg': 'OTP verified successfully'}, status=status.HTTP_200_OK)
         else:
             return Response({'msg': 'Invalid OTP'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        
+
+
+
+class UserUpdateView(APIView):
+
+    def put(self, request, *args, **kwargs):
+        # Retrieve the token from the request headers
+        
+        user_id = get_user_id_from_token(request)
+       
+        print(user_id)
+       
+        # Assume this function checks the token externally and returns a user ID if valid
+         
+        if not user_id:
+            return Response({'error': 'Invalid or missing token'}, status=status.HTTP_401_UNAUTHORIZED)
+
+        try:
+            user = User.object.get(pk=user_id)
+        except User.DoesNotExist:
+            return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        # Update user attributes from request data
+        user.first_name = request.data.get('first_name', user.first_name)
+        user.last_name = request.data.get('last_name', user.last_name)
+        user.email = request.data.get('email', user.email)
+        user.password = make_password(request.data.get('password')) if 'password' in request.data else user.password
+        user.image = request.data.get('image', user.image)
+        user.phone_no = request.data.get('phone_no', user.phone_no)
+        user.company = request.data.get('company', user.company)
+        user.country = request.data.get('country', user.country)
+        user.bio = request.data.get('bio', user.bio)
+        user.save()
+
+        return Response({'message': 'User updated successfully.'}, status=status.HTTP_200_OK)
+    
+    
+    
