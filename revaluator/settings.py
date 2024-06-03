@@ -1,3 +1,4 @@
+from __future__ import print_function
 from datetime import timedelta
 """
 Django settings for revaluator project.
@@ -96,17 +97,6 @@ DATABASES = {
 
 }
 
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.mailtrap.io'
-EMAIL_HOST_USER = 'api'  # Found in your Mailtrap settings
-EMAIL_HOST_PASSWORD = '5cd5a9a9a91fb2beb6918f010625700e'  # Found in your Mailtrap settings
-EMAIL_PORT = 2525
-EMAIL_USE_TLS = True
-
-
-
-# Password validation
-# https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -199,7 +189,7 @@ SIMPLE_JWT = {
     'SLIDING_TOKEN_REFRESH_LIFETIME': timedelta(days=36500),  # Example: 100 years
 }
 
-# # settings.py
-# import os
 
-# MAILTRAP_API_KEY = os.getenv('5cd5a9a9a91fb2beb6918f010625700e')
+
+
+

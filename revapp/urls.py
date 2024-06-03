@@ -13,7 +13,6 @@ urlpatterns = [
     path('questions/update/<uuid:question_id>/', UpdateQuestionView.as_view(), name='update_question'),
     path('test-candidates/', TestCandidateCreateView.as_view(), name='create_test_candidate'),
     path('recruiters/<uuid:recruiter_id>/candidates-results/', RecruiterCandidateResults.as_view(), name='recruiter_candidate_results'),
-    path('send-email/', SendEmailView.as_view(), name='send-email'),
-    # path('mail',simple_mail),
-#     path('send-mailtrap-email/', send_mailtrap_email, name='send-mailtrap-email'),
+    path('send-email/<uuid:candidate_id>/', SendEmailView.as_view(), name='send-email'),
+    
  ]
