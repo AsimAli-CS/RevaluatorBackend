@@ -91,7 +91,7 @@ DATABASES = {
         "USER": "postgres",
         "PASSWORD": "root",
         "HOST": "localhost",
-        "PORT": "5433",
+        "PORT": "5432",
     }
 
 }
@@ -192,3 +192,10 @@ SIMPLE_JWT = {
     'SLIDING_TOKEN_LIFETIME': timedelta(days=36500),  # Example: 100 years
     'SLIDING_TOKEN_REFRESH_LIFETIME': timedelta(days=36500),  # Example: 100 years
 }
+
+PASSWORD_HASHERS = [
+    'django.contrib.auth.hashers.PBKDF2PasswordHasher',
+    'django.contrib.auth.hashers.PBKDF2SHA1PasswordHasher',
+    'django.contrib.auth.hashers.Argon2PasswordHasher',
+    'django.contrib.auth.hashers.BCryptSHA256PasswordHasher',
+]
