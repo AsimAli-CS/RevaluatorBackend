@@ -1,3 +1,4 @@
+from django.http import HttpResponse
 import jwt
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -7,6 +8,9 @@ from revaluator import settings
 from .models import Candidate,TestCandidate,Questions,Test
 from .serializers import CandidateSerializer,TestCandidateSerializer,CreateTestSerializer,QuestionSerializer
 from authAPI.models import User
+from django.core.mail import EmailMessage
+from django.core.mail import send_mail
+
 
 def get_user_id_from_token(request):
     auth_header = request.headers.get('token')
@@ -221,3 +225,89 @@ class TestSubmissionView(APIView):
             return Response({'msg': 'Multiple TestCandidate instances found for candidate and test'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
         return Response({'msg': 'Test submitted successfully', 'score': score}, status=status.HTTP_201_CREATED)
+    
+# class SendEmailView(APIView):
+#     def post(self, request):
+#         subject = request.data.get('subject', 'Default Subject')
+#         message = request.data.get('message', 'Hello there, this is a test message.')
+#         to_email = request.data.get('to_email')
+
+#         if not to_email:
+#             return Response({'error': 'Email address is required.'}, status=status.HTTP_400_BAD_REQUEST)
+
+#         email = EmailMessage(subject, message, to=[to_email])
+#         email.send()
+
+#         return Response({'message': 'Email sent successfully!'}, status=status.HTTP_200_OK)
+
+# class SendEmailView(APIView):
+#     def post(self, request):
+#         subject = request.data.get('subject', 'Default Subject')
+#         message = request.data.get('message', 'Hello there, this is a test message.')
+#         to_email = request.data.get('to_email')
+
+#         if not to_email:
+#             return Response({'error': 'Email address is required.'}, status=status.HTTP_400_BAD_REQUEST)
+
+#         email = EmailMessage(subject, message, to=[to_email])
+#         email.send()
+
+#         return Response({'message': 'Email sent successfully!'}, status=status.HTTP_200_OK)
+
+# from django.http import HttpResponse
+# from django.core.mail import send_mail
+# from django.core.mail import BadHeaderError, SMTPException
+
+# def simple_mail(request):
+#     try:
+#         send_mail(
+#             subject='That\'s your subject',
+#             message='That\'s your message body',
+#             from_email='asimalia03@gmail.com',
+#             recipient_list=['test.mailtrap1234@gmail.com']
+#         )
+#         return HttpResponse('Message sent!')
+#     except (BadHeaderError, SMTPException) as e:
+#         return HttpResponse(f'Failed to send email: {e}', status=500)
+
+# from django.http import JsonResponse
+# import os
+# import mailtrap as mt  # Ensure you have a valid Mailtrap client library or use appropriate methods
+
+# def send_mailtrap_email(request):
+#     # Assuming you have a GET request for simplicity, adjust as per your needs
+#     if request.method == 'GET':
+#         try:
+#             mail = mt.Mail(
+#                 sender=mt.Address(email="asimalia03@gmail.com", name="Mailtrap Test"),
+#                 to=[mt.Address(email="asimalia051@gmail.com.com")],  # Set recipient email
+#                 subject="You are awesome!",
+#                 text="Congrats for sending test email with Mailtrap!"
+#             )
+#             client = mt.MailtrapClient(token=os.environ.get('5cd5a9a9a91fb2beb6918f010625700e'))
+#             client.send(mail)
+#             return JsonResponse({'message': 'Email sent successfully!'}, status=200)
+#         except Exception as e:
+#             return JsonResponse({'error': str(e)}, status=500)
+
+#     return JsonResponse({'error': 'Invalid request'}, status=400)
+from django.core.mail import send_mail
+
+class SendEmailView(APIView):
+    def post(self, request):
+        subject = request.data.get('subject', 'No Subject')
+        message = request.data.get('message', '')
+        to_email = request.data.get('to_email', None)
+
+        if not to_email:
+            return Response({'error': 'Email address is required.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        send_mail(
+            subject,
+            message,
+            'asimalia03@gmail.com',  # From email (same as your Mailtrap account email)
+            [to_email],
+            fail_silently=False,
+        )
+
+        return Response({'message': 'Email sent successfully!'}, status=status.HTTP_200_OK)
