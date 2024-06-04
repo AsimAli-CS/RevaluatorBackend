@@ -1,5 +1,5 @@
 from django.urls import path , include
-from authAPI.views import  UserRegistrationView,UserLoginView , OTPGenerateView , ChangePassword  ,OTPVerifyView,UserUpdateView
+from authAPI.views import  UserRegistrationView,UserLoginView , OTPGenerateView , ChangePassword  ,OTPVerifyView,UserUpdateView,UserDetailView
 
 urlpatterns = [
 
@@ -15,4 +15,5 @@ urlpatterns = [
     
     path('user/update/', UserUpdateView.as_view(), name='user-update'),
 
+    path('user/', UserDetailView.as_view(), name='user-detail'),
 ]
