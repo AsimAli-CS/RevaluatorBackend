@@ -1,4 +1,5 @@
 from django.http import HttpResponse
+from django.shortcuts import get_object_or_404
 import jwt
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -13,8 +14,8 @@ from django.core.mail import send_mail
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-import sib_api_v3_sdk
-from sib_api_v3_sdk.rest import ApiException
+# import sib_api_v3_sdk
+# from sib_api_v3_sdk.rest import ApiException
 from pprint import pprint
 
 import logging
@@ -86,6 +87,18 @@ class TestDetailsView(APIView):
             return Response(serialized_data.data, status=status.HTTP_200_OK)
         except User.DoesNotExist:
             return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+
+class TestData(APIView):
+    def get(self, request, id, recruiter_id , candidate_id , format=None):
+        try:
+            test = Test.objects.get(id=id)
+            recruiter = get_object_or_404(User, id=recruiter_id)
+            candidate = get_object_or_404(Candidate, id=candidate_id)
+            serialized_data = CreateTestSerializer(test)
+            return Response(serialized_data.data, status=status.HTTP_200_OK)
+        except Test.DoesNotExist:
+            return Response({'error': 'Test not found'}, status=status.HTTP_404_NOT_FOUND)
+
 
 class CreateTestView(APIView):
     def post(self, request, format=None):
@@ -162,6 +175,8 @@ class TestCandidateCreateView(APIView):
         user_id = request.data.get('user')
         candidate_id = request.data.get('candidate')
         test_id = request.data.get('testId')
+        test_score = request.data.get('testScore')  # Added to fetch testScore from request
+
         if not user_id or not candidate_id or not test_id:
             return Response({'error': 'User ID, candidate ID, and test ID are required'}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -176,7 +191,9 @@ class TestCandidateCreateView(APIView):
             return Response({'error': 'Candidate not found'}, status=status.HTTP_404_NOT_FOUND)
         except Test.DoesNotExist:
             return Response({'error': 'Test not found'}, status=status.HTTP_404_NOT_FOUND)
-
+        
+        candidate.testScore = test_score
+        candidate.save()
         # Continue with serializer validation and saving
         serializer = TestCandidateSerializer(data=request.data)
         if serializer.is_valid():
@@ -306,7 +323,7 @@ class TestSubmissionView(APIView):
 logger = logging.getLogger(__name__)
 
 class SendEmailView(APIView):
-    def post(self, request,candidate_id):
+    def post(self, request,candidate_id , test_id):
         user_id = get_user_id_from_token(request)  # Assuming this function is defined correctly
         try:
             user = User.object.get(pk=user_id)
@@ -330,7 +347,22 @@ class SendEmailView(APIView):
         recipients = [{"email": candidate.email}]  # Correct assignment of email
 
         subject = "My subject"
-        content = "Congratulations! You successfully sent this example email via the SendinBlue API."
+        content = """
+        <html>
+        <body>
+            <p>Here are the credentials for your test:</p>
+            <ul>
+            <li>TestId: {test_id}</li>
+            <li>CandidateId: {candidate_id}</li>
+            <li>RecruiterId: {recruiter_id}</li>
+            </ul>
+            <p>Link for your test is.</p>
+
+            <a href="http://localhost:3000/appPages/candidate-testId">Take Test</a>
+
+        </body>
+        </html>
+        """.format(test_id=test_id, candidate_id=candidate_id, recruiter_id=user_id)
 
         send_smtp_email = sib_api_v3_sdk.SendSmtpEmail(
             to=recipients,
