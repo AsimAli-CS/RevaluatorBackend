@@ -1,3 +1,4 @@
+from __future__ import print_function
 from datetime import timedelta
 """
 Django settings for revaluator project.
@@ -14,7 +15,7 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 from pathlib import Path
 
 from django.conf import settings
-
+from django.core.mail import send_mail
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -91,21 +92,11 @@ DATABASES = {
         "USER": "postgres",
         "PASSWORD": "root",
         "HOST": "localhost",
-        "PORT": "5433",
+        "PORT": "5432",
     }
 
 }
 
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'shazil2320@gmail.com'
-EMAIL_HOST_PASSWORD = ''
-
-
-# Password validation
-# https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -167,6 +158,11 @@ CORS_ALLOW_HEADERS = [
     'token',
 ]
 
+# settings.py for development
+
+#EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+# settings.py
+
 
 
 
@@ -192,3 +188,8 @@ SIMPLE_JWT = {
     'SLIDING_TOKEN_LIFETIME': timedelta(days=36500),  # Example: 100 years
     'SLIDING_TOKEN_REFRESH_LIFETIME': timedelta(days=36500),  # Example: 100 years
 }
+
+
+
+
+

@@ -155,9 +155,6 @@ class OTPVerifyView(APIView):
             return Response({'msg': 'Invalid OTP'}, status=status.HTTP_400_BAD_REQUEST)
         
         
-
-
-
 class UserUpdateView(APIView):
 
     def put(self, request, *args, **kwargs):
