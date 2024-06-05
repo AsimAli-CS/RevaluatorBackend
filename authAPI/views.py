@@ -189,4 +189,18 @@ class UserUpdateView(APIView):
         return Response({'message': 'User updated successfully.'}, status=status.HTTP_200_OK)
     
     
-    
+class UserDetailView(APIView):
+
+    def get(self, request, *args, **kwargs):
+        user_id = get_user_id_from_token(request)
+
+        if not user_id:
+            return Response({'error': 'Invalid or missing token'}, status=status.HTTP_401_UNAUTHORIZED)
+
+        try:
+            user = User.object.get(pk=user_id)
+        except User.DoesNotExist:
+            return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = UserSerializer(user)
+        return Response(serializer.data, status=status.HTTP_200_OK)
