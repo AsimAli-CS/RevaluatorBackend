@@ -1,3 +1,5 @@
+from django.http import HttpResponse
+from django.shortcuts import get_object_or_404
 import jwt
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -7,6 +9,17 @@ from revaluator import settings
 from .models import Candidate,TestCandidate,Questions,Test
 from .serializers import CandidateSerializer,TestCandidateSerializer,CreateTestSerializer,QuestionSerializer
 from authAPI.models import User
+from django.core.mail import EmailMessage
+from django.core.mail import send_mail
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+# import sib_api_v3_sdk
+# from sib_api_v3_sdk.rest import ApiException
+from pprint import pprint
+
+import logging
+
 
 def get_user_id_from_token(request):
     auth_header = request.headers.get('token')
@@ -20,8 +33,22 @@ def get_user_id_from_token(request):
             # Handle token errors
             print(f"Token error: {e}")
             return None
-    return None
 
+def get_candidate_id_from_token(request):
+    cand_header = request.headers.get('Candidatetoken')
+    print("heee"+ cand_header)
+    if cand_header:
+        try:
+            # token = auth_header.split(' ')[1]  # Assuming the header is 'Bearer <token>'
+            decoded_token = jwt.decode(cand_header, settings.SECRET_KEY, algorithms=['HS256'])
+            candidate_id = decoded_token.get('candidate_id')
+            
+            return candidate_id
+        except (jwt.DecodeError) as e:
+            # Handle token errors
+            print(f"Token error: {e}")
+            return None
+    return None
 
 class CandidateView(APIView):
     def post(self, request, format=None):
@@ -61,6 +88,18 @@ class TestDetailsView(APIView):
         except User.DoesNotExist:
             return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
 
+class TestData(APIView):
+    def get(self, request, id, recruiter_id , candidate_id , format=None):
+        try:
+            test = Test.objects.get(id=id)
+            recruiter = get_object_or_404(User, id=recruiter_id)
+            candidate = get_object_or_404(Candidate, id=candidate_id)
+            serialized_data = CreateTestSerializer(test)
+            return Response(serialized_data.data, status=status.HTTP_200_OK)
+        except Test.DoesNotExist:
+            return Response({'error': 'Test not found'}, status=status.HTTP_404_NOT_FOUND)
+
+
 class CreateTestView(APIView):
     def post(self, request, format=None):
         serializer = CreateTestSerializer(data=request.data)
@@ -86,12 +125,13 @@ class QuestionsByTestIdView(APIView):
             return Response({'error': 'Questions not found'}, status=status.HTTP_404_NOT_FOUND)
         
 class AddQuestionView(APIView):
-    def post(self, request, format=None):
+    def post(self, request, test_id , format=None):
         data = request.data
         if isinstance(data, list):
             # If request data is a list of questions
             serializer_list = []
             for item in data:
+                item['testId'] = test_id
                 serializer = QuestionSerializer(data=item)
                 if serializer.is_valid():
                     serializer.save()
@@ -100,6 +140,7 @@ class AddQuestionView(APIView):
                     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
             return Response(serializer_list, status=status.HTTP_201_CREATED)
         else:
+            data['testId'] = test_id
             # If request data is a single question
             serializer = QuestionSerializer(data=data)
             if serializer.is_valid():
@@ -134,6 +175,8 @@ class TestCandidateCreateView(APIView):
         user_id = request.data.get('user')
         candidate_id = request.data.get('candidate')
         test_id = request.data.get('testId')
+        test_score = request.data.get('testScore')  # Added to fetch testScore from request
+
         if not user_id or not candidate_id or not test_id:
             return Response({'error': 'User ID, candidate ID, and test ID are required'}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -148,7 +191,9 @@ class TestCandidateCreateView(APIView):
             return Response({'error': 'Candidate not found'}, status=status.HTTP_404_NOT_FOUND)
         except Test.DoesNotExist:
             return Response({'error': 'Test not found'}, status=status.HTTP_404_NOT_FOUND)
-
+        
+        candidate.testScore = test_score
+        candidate.save()
         # Continue with serializer validation and saving
         serializer = TestCandidateSerializer(data=request.data)
         if serializer.is_valid():
@@ -219,3 +264,119 @@ class TestSubmissionView(APIView):
             return Response({'msg': 'Multiple TestCandidate instances found for candidate and test'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
         return Response({'msg': 'Test submitted successfully', 'score': score}, status=status.HTTP_201_CREATED)
+
+
+
+# logger = logging.getLogger(__name__)
+
+# class SendEmailView(APIView):
+#     def post(self, request,candidate_id):
+#         user_id = get_user_id_from_token(request)  # Assuming this function is defined correctly
+#         # print(user_id)
+#         try:
+#             user = User.object.get(pk=user_id)
+#         except User.DoesNotExist:
+#             return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        
+#         print(candidate_id)
+#         try:
+#             candidate = Candidate.objects.get(pk=candidate_id)
+#             print(candidate.email)
+#             return Response({'email': candidate.email}, status=status.HTTP_200_OK)
+#         except Candidate.DoesNotExist:
+#             return Response({'error': 'Candidate not found'}, status=status.HTTP_404_NOT_FOUND)
+
+#         # Logging the emails for debugging purposes - consider removing or changing the log level in production
+#         logger.info(f"User Email: {user.email}, Candidate Email: {candidate.email}")
+
+#         # Configure the SendinBlue API
+#         configuration = sib_api_v3_sdk.Configuration()
+#         configuration.api_key['api-key'] = settings.SENDINBLUE_API_KEY
+#         api_instance = sib_api_v3_sdk.TransactionalEmailsApi(sib_api_v3_sdk.ApiClient(configuration))
+#         sender = {"email": user.email, "name": "From name"}
+#         recipients = [{"email": candidate.email}]  # Correct assignment of email
+
+#         subject = "My subject"
+#         content = "Congratulations! You successfully sent this example email via the SendinBlue API."
+
+#         send_smtp_email = sib_api_v3_sdk.SendSmtpEmail(
+#             to=recipients,
+#             sender=sender,
+#             subject=subject,
+#             html_content=content
+#         )
+
+#         try:
+#             api_response = api_instance.send_transac_email(send_smtp_email)
+#             return Response(api_response.to_dict(), status=status.HTTP_200_OK)
+#         except ApiException as e:
+#             logger.error(f"SendinBlue API exception: {str(e)}")
+#             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+#         except Exception as e:
+#             logger.error(f"Unexpected error: {str(e)}")
+#             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+        
+
+
+logger = logging.getLogger(__name__)
+
+class SendEmailView(APIView):
+    def post(self, request,candidate_id , test_id):
+        user_id = get_user_id_from_token(request)  # Assuming this function is defined correctly
+        try:
+            user = User.object.get(pk=user_id)
+        except User.DoesNotExist:
+            return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+
+          # Assuming this function is defined correctly
+        try:
+            candidate = Candidate.objects.get(pk=candidate_id)
+        except Candidate.DoesNotExist:
+            return Response({'error': 'Candidate not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        # Logging the emails for debugging purposes - consider removing or changing the log level in production
+        logger.info(f"User Email: {user.email}, Candidate Email: {candidate.email}")
+        print("recepient:" + candidate.email + "   " + "sender:  " + user.email )
+        # Configure the SendinBlue API
+        configuration = sib_api_v3_sdk.Configuration()
+        configuration.api_key['api-key'] = settings.SENDINBLUE_API_KEY
+        api_instance = sib_api_v3_sdk.TransactionalEmailsApi(sib_api_v3_sdk.ApiClient(configuration))
+        sender = {"email": user.email, "name": "From name"}
+        recipients = [{"email": candidate.email}]  # Correct assignment of email
+
+        subject = "My subject"
+        content = """
+        <html>
+        <body>
+            <p>Here are the credentials for your test:</p>
+            <ul>
+            <li>TestId: {test_id}</li>
+            <li>CandidateId: {candidate_id}</li>
+            <li>RecruiterId: {recruiter_id}</li>
+            </ul>
+            <p>Link for your test is.</p>
+
+            <a href="http://localhost:3000/appPages/candidate-testId">Take Test</a>
+
+        </body>
+        </html>
+        """.format(test_id=test_id, candidate_id=candidate_id, recruiter_id=user_id)
+
+        send_smtp_email = sib_api_v3_sdk.SendSmtpEmail(
+            to=recipients,
+            sender=sender,
+            subject=subject,
+            html_content=content
+        )
+
+        try:
+            api_response = api_instance.send_transac_email(send_smtp_email)
+            return Response(api_response.to_dict(), status=status.HTTP_200_OK)
+        except ApiException as e:
+            logger.error(f"SendinBlue API exception: {str(e)}")
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        except Exception as e:
+            logger.error(f"Unexpected error: {str(e)}")
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

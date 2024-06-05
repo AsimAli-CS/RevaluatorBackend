@@ -49,6 +49,7 @@ class Candidate(models.Model):
     phone_no = models.CharField(max_length=15)
     cvTitle = models.CharField(max_length=255, null=True, blank=True)
     cvScore = models.DecimalField(max_digits=5, decimal_places=2, default=0)
+    testScore = models.DecimalField(max_digits=5, decimal_places=2, default=0)
     skills = models.CharField(max_length=255, null=True, blank=True) 
     recruiterId = models.ForeignKey(User, on_delete=models.CASCADE , null=True)
 
