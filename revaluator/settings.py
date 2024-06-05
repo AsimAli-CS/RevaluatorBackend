@@ -13,6 +13,11 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 """
 
 from pathlib import Path
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+GOOGLE_API_KEY = os.getenv('GOOGLE_API_KEY')
 
 from django.conf import settings
 from django.core.mail import send_mail
@@ -90,7 +95,7 @@ DATABASES = {
         "ENGINE": "django.db.backends.postgresql",
         "NAME": "revaluator",
         "USER": "postgres",
-        "PASSWORD": "root",
+        "PASSWORD": "123",
         "HOST": "localhost",
         "PORT": "5433",
     }

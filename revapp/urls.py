@@ -1,6 +1,6 @@
 from django.urls import path
-from .views import CandidateView,  TestData, TestDetailsView,CreateTestView,AllQuestionsView,QuestionsByTestIdView,AddQuestionView,DeleteQuestionView,UpdateQuestionView,TestCandidateCreateView,RecruiterCandidateResults,TestSubmissionView,SendEmailView
-
+from .views import GenerateMCQsView,UploadResumeView,CandidateView,TestDetailsView,CreateTestView,AllQuestionsView,QuestionsByTestIdView,AddQuestionView,DeleteQuestionView,UpdateQuestionView,TestCandidateCreateView,RecruiterCandidateResults,TestSubmissionView,SendEmailView
+# from .views import send_mailtrap_email
 urlpatterns = [
     path('testSubmission/', TestSubmissionView.as_view(), name='Submission'),
     path('candidates/', CandidateView.as_view(), name='candidates'),
@@ -14,6 +14,8 @@ urlpatterns = [
     path('questions/update/<uuid:question_id>/', UpdateQuestionView.as_view(), name='update_question'),
     path('test-candidates/', TestCandidateCreateView.as_view(), name='create_test_candidate'),
     path('recruiters/<uuid:recruiter_id>/candidates-results/', RecruiterCandidateResults.as_view(), name='recruiter_candidate_results'),
+    path('upload-resumes/', UploadResumeView.as_view(), name='upload-resumes'),
+    path('generate-mcqs/', GenerateMCQsView.as_view(), name='generate-mcqs'),
     path('send-email/<uuid:candidate_id>/<uuid:test_id>', SendEmailView.as_view(), name='send-email'),
     
  ]
