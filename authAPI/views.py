@@ -19,7 +19,10 @@ from django.conf import settings
 from django.utils import timezone
 import logging
 
+user_id = None 
+
 def get_user_id_from_token(request):
+    global user_id
     auth_header = request.headers.get('token')
     if auth_header:
         try:
