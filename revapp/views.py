@@ -21,7 +21,9 @@ from .extraction import extract_details_from_pdf
 import logging
 import os
 
+
 user_id =None
+
 def get_user_id_from_token(request):
     global user_id
     auth_header = request.headers.get('token')
@@ -421,23 +423,23 @@ class GenerateMCQsView(APIView):
             return Response({'error': 'Skills are required'}, status=status.HTTP_400_BAD_REQUEST)
 
         prompt = f"""
+
         Create 15 medium difficulty level MCQs short descriptive based on the following skills: {skills} with correct answers.
         It should be an array of objects and The pattern should be like this:
-        
             "questionStatement": "Where does Shazil live?",
             "optionA": "Lahore",
             "optionB": "Multan",
             "optionC": "London",
             "optionD": "Karachi",
             "answer": "B"
+
     
         """
         
-        logger.info(f'Generated prompt: {prompt}')
-
         try:
             model = genai.GenerativeModel('gemini-1.5-flash')
             response = model.generate_content(prompt)
+
             logger.info('Received response from the AI model')
 
             questions_data = self.parse_response(response.text)
@@ -456,6 +458,17 @@ class GenerateMCQsView(APIView):
         except genai.TimeoutException as e:
             logger.error(f"Request timed out: {str(e)}")
             return Response({'error': 'Request timed out'}, status=status.HTTP_504_GATEWAY_TIMEOUT)
+
+            questions_data = self.parse_response(response.text)
+            print(questions_data)
+
+            if not questions_data:
+                return Response({'error': 'Failed to parse generated questions'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+            saved_questions = self.save_questions_to_db(questions_data)
+
+            return Response(saved_questions, status=status.HTTP_201_CREATED)
+
         except Exception as e:
             logger.error(f"Error generating questions: {str(e)}")
             return Response({'error': 'Failed to generate questions'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -467,7 +480,9 @@ class GenerateMCQsView(APIView):
             for question in questions:
                 question_dict = {}
                 lines = question.strip().split('\n')
+
                 print("lines", lines)
+
                 if len(lines) == 6:
                     question_dict['questionStatement'] = lines[0].split(": ", 1)[1].strip()
                     question_dict['optionA'] = lines[1].split(": ", 1)[1].strip()
@@ -478,12 +493,19 @@ class GenerateMCQsView(APIView):
                     questions_data.append(question_dict)
                 else:
 
+
                     logger.warning(f"Invalid question format, skipping: {question}")
                 
                 print("question",question)
         except Exception as e:
             logger.error(f"Error parsing response: {str(e)}")
         return question
+
+                    logger.warning(f"Invalid question format, skipping: {question}")
+        except Exception as e:
+            logger.error(f"Error parsing response: {str(e)}")
+        return questions_data
+
 
     def save_questions_to_db(self, questions_data):
         saved_questions = []
