@@ -21,8 +21,13 @@ from .extraction import extract_details_from_pdf
 import logging
 import os
 
+
+user_id =None
+
 def get_user_id_from_token(request):
+    global user_id
     auth_header = request.headers.get('token')
+    print(auth_header)
     if auth_header:
         try:
             # token = auth_header.split(' ')[1]  # Assuming the header is 'Bearer <token>'
@@ -321,8 +326,10 @@ class TestSubmissionView(APIView):
 logger = logging.getLogger(__name__)
 
 class SendEmailView(APIView):
+    global user_id
     def post(self, request,candidate_id , test_id):
-        user_id = get_user_id_from_token(request)  # Assuming this function is defined correctly
+        # user_id ="58c10b93-1305-41fa-b7bd-3656cc6211f2"  # Assuming this function is defined correctly
+        print("user_id" , user_id)
         try:
             user = User.object.get(pk=user_id)
         except User.DoesNotExist:
@@ -344,27 +351,26 @@ class SendEmailView(APIView):
         sender = {"email": user.email, "name": "From name"}
         recipients = [{"email": candidate.email}]  # Correct assignment of email
 
-        subject = "My subject"
+        subject = "Test Credentials"
         content = """
-        <html>
-        <body>
-            <p>Here are the credentials for your test:</p>
-            <ul>
-            <li>TestId: {test_id}</li>
-            <li>CandidateId: {candidate_id}</li>
-            <li>RecruiterId: {recruiter_id}</li>
-            </ul>
-            <p>Link for your test is.</p>
-
-            <a href="http://localhost:3000/appPages/candidate-testId">Take Test</a>
-
-        </body>
+     <html>
+      <body style="font-family: Arial, sans-serif; line-height: 1.6;">
+    <p style="font-size: 18px; color: #333; margin-bottom: 15px;">Here are the credentials for your test:</p>
+    <ul style="list-style-type: none; padding-left: 0;">
+        <li style="font-size: 16px; color: #666; margin-bottom: 5px;">TestId: <span style="font-weight: bold; color: #000;">{test_id}</span></li>
+        <li style="font-size: 16px; color: #666; margin-bottom: 5px;">RecruiterId: <span style="font-weight: bold; color: #000;">{recruiter_id}</span></li>
+        <li style="font-size: 16px; color: #666; margin-bottom: 5px;">CandidateId: <span style="font-weight: bold; color: #000;">{candidate_id}</span></li>
+    </ul>
+    <p style="font-size: 18px; color: #333; margin-top: 15px;">Click the link below to take the test:</p>
+    <a href="http://localhost:3000/appPages/candidate-testId" style="display: inline-block; background-color: #007bff; color: #fff; text-decoration: none; padding: 10px 20px; font-size: 16px; border-radius: 5px;">Take Test</a>
+</body>
         </html>
-        """.format(test_id=test_id, candidate_id=candidate_id, recruiter_id=user_id)
+
+    """.format(test_id=test_id, candidate_id=candidate_id, recruiter_id=user_id)
 
         send_smtp_email = sib_api_v3_sdk.SendSmtpEmail(
             to=recipients,
-            sender=sender,
+            sender= sender,
             subject=subject,
             html_content=content
         )
@@ -373,8 +379,7 @@ class SendEmailView(APIView):
             api_response = api_instance.send_transac_email(send_smtp_email)
             return Response(api_response.to_dict(), status=status.HTTP_200_OK)
         except ApiException as e:
-            logger.error(f"SendinBlue API exception: {str(e)}")
-            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         except Exception as e:
             logger.error(f"Unexpected error: {str(e)}")
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -418,21 +423,42 @@ class GenerateMCQsView(APIView):
             return Response({'error': 'Skills are required'}, status=status.HTTP_400_BAD_REQUEST)
 
         prompt = f"""
-        Create 5 medium difficulty level MCQs short descriptive based on the following skills: {skills} with correct answers.
-        The pattern should be like this:
-        {{
+
+        Create 15 medium difficulty level MCQs short descriptive based on the following skills: {skills} with correct answers.
+        It should be an array of objects and The pattern should be like this:
             "questionStatement": "Where does Shazil live?",
             "optionA": "Lahore",
             "optionB": "Multan",
             "optionC": "London",
             "optionD": "Karachi",
             "answer": "B"
-        }}
-        """
 
+    
+        """
+        
         try:
             model = genai.GenerativeModel('gemini-1.5-flash')
             response = model.generate_content(prompt)
+
+            logger.info('Received response from the AI model')
+
+            questions_data = self.parse_response(response.text)
+            
+
+            # logger.info(f'Parsed questions data: {questions_data}')
+
+            # if not questions_data:
+            #     logger.error('Failed to parse generated questions')
+            #     return Response({'error': 'Failed to parse generated questions'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+            # saved_questions = self.save_questions_to_db(questions_data)
+            # logger.info(f'Saved questions to database: {saved_questions}')
+            return Response(questions_data, status=status.HTTP_201_CREATED)
+
+        except genai.TimeoutException as e:
+            logger.error(f"Request timed out: {str(e)}")
+            return Response({'error': 'Request timed out'}, status=status.HTTP_504_GATEWAY_TIMEOUT)
+
             questions_data = self.parse_response(response.text)
             print(questions_data)
 
@@ -454,6 +480,9 @@ class GenerateMCQsView(APIView):
             for question in questions:
                 question_dict = {}
                 lines = question.strip().split('\n')
+
+                print("lines", lines)
+
                 if len(lines) == 6:
                     question_dict['questionStatement'] = lines[0].split(": ", 1)[1].strip()
                     question_dict['optionA'] = lines[1].split(": ", 1)[1].strip()
@@ -463,10 +492,20 @@ class GenerateMCQsView(APIView):
                     question_dict['answer'] = lines[5].split(": ", 1)[1].strip()
                     questions_data.append(question_dict)
                 else:
+
+
+                    logger.warning(f"Invalid question format, skipping: {question}")
+                
+                print("question",question)
+        except Exception as e:
+            logger.error(f"Error parsing response: {str(e)}")
+        return question
+
                     logger.warning(f"Invalid question format, skipping: {question}")
         except Exception as e:
             logger.error(f"Error parsing response: {str(e)}")
         return questions_data
+
 
     def save_questions_to_db(self, questions_data):
         saved_questions = []

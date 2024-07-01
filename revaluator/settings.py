@@ -93,11 +93,13 @@ WSGI_APPLICATION = 'revaluator.wsgi.application'
 DATABASES = {
      'default':  {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": "revaluator",
+        "NAME": "revaluator2",
         "USER": "postgres",
+
         "PASSWORD": "123",
+
         "HOST": "localhost",
-        "PORT": "5433",
+        "PORT": "5432",
     }
 
 }
@@ -193,7 +195,6 @@ SIMPLE_JWT = {
     'SLIDING_TOKEN_LIFETIME': timedelta(days=36500),  # Example: 100 years
     'SLIDING_TOKEN_REFRESH_LIFETIME': timedelta(days=36500),  # Example: 100 years
 }
-
 
 
 
